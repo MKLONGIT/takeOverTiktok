@@ -1,6 +1,6 @@
 from moviepy.editor  import *
 import math
-
+import os
 
 class ChrisNolan:
 
@@ -11,23 +11,51 @@ class ChrisNolan:
         self.audioPath = "schpoddyfei\\gg.mp3"
         self.vidPath = "vidCon\\test.mp4"
 
+    def isPicture(self, string):        
+        if type(string) != tuple:
+            extension = os.path.splitext(string)[-1]
+            if extension == ".png" or extension == ".jpg" or extension == ".jpeg" or extension == ".bmp":
+                return True
+            return False 
+    def isVideo(self, string):
+        if type(string) == tuple:
+            extension = os.path.splitext(string[0])[-1]
+            if extension == ".mov" or extension == ".mp4" or extension == ".avi":
+                return True
+        return False
+
     def yeetInToAVid(self, images:list, audioPath=None, saveName:str = "balls"):
         self.vidPath = saveName
         self.audioPath = audioPath
         clips = []
-        numberOfImages = len(images)
-        individualLen = math.floor(self.targetTime / numberOfImages)
+        numberOfImages = 0
+
+        # the videos determine the time that is left for images:
+        videoTime = 0
+        for img in images:
+            if self.isVideo(img):
+                videoTime += img[1]
+            elif self.isPicture(img):
+                numberOfImages+=1
+        individualLen = math.floor((self.targetTime - videoTime) / numberOfImages)
         t = 0
-        actualMaxTime = numberOfImages * individualLen
+        actualMaxTime = self.targetTime
         daSize = self.vidSize
         colorthing = ColorClip(size=daSize, color=(0,0,0), ismask=False).set_start(0).set_duration(actualMaxTime).set_pos(("center","center"))
         clips.append(colorthing)
 
-        for i in range(numberOfImages):
-            theImage = images[i]
-            clip = ImageClip(theImage).set_start(t).set_duration(individualLen).set_pos(("center","center")).resize(width=self.vidSize[0])
-            clips.append(clip)
-            t += individualLen
+        for i in range(len(images)):
+            clip = None
+            actualLen = individualLen
+            if self.isPicture(images[i]):
+                theImage = images[i]
+                clip = ImageClip(theImage).set_start(t).set_duration(individualLen).set_pos(("center","center")).resize(width=self.vidSize[0])
+            elif self.isVideo(images[i]):
+                clip = VideoFileClip(images[i][0]).set_start(t).set_duration(images[i][1]).set_pos(("center", "center")).resize(width=self.vidSize[0])
+                actualLen = images[i][1]
+            if clip is not None:
+                t += actualLen
+                clips.append(clip)
 
 
         final = CompositeVideoClip(clips)

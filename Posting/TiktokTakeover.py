@@ -4,7 +4,9 @@ from deezNuts import ChrisNolan
 import os
 
 def main():
-    places = ["manhattan", "boston", "edmonton", "vancouver", "calgary", "melbourne", "las vegas", "los angeles"]
+    places = ["boston", "edmonton", "vancouver", "calgary", "melbourne", "las vegas", "los angeles"]
+   
+    
     for place in places:
         makeSuccess(place)
 
@@ -16,7 +18,8 @@ def makeSuccess(query:str):
     imgFiles = os.listdir("images\\")
     for i in range(len(imgFiles)):
         imgFiles[i] = "images\\" + imgFiles[i]
-    
+    imgFiles = [("worldPreview.mp4", 5)] + imgFiles
+
     chris = ChrisNolan(targetTime=20, fps=25)
     chris.yeetInToAVid(imgFiles, audioPath="basedSound.mp3", saveName="joe.mp4")
 
