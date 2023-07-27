@@ -34,10 +34,17 @@ def chrome_defaults(*args, headless: bool = False, **kwargs) -> ChromeOptions:
 
     return options
 
-def ScrapeImages(Query:str, driver=None):
-    if driver is not None:
+def ScrapeImages(Query:str, cnt = 5, driver=None, whereToSaveRelative="images"):
+    if driver is None:
         service = Service(ChromeDriverManager(driver_version="114.0.5735.90").install())
         driver = webdriver.Chrome(service=service, options=chrome_defaults())
+
+    thisPath = os.path.join(os.path.dirname(__file__), whereToSaveRelative)
+    files = os.listdir(thisPath)
+    for i, file in enumerate(files):
+            if i > 100:
+                break
+            os.remove(os.path.join(thisPath, file))
 
     # What you enter here will be searched for in
     # Google Images
@@ -99,7 +106,7 @@ def ScrapeImages(Query:str, driver=None):
     nResults = 0
     for i, img in enumerate(imgs):
     
-        if nResults > 5:
+        if nResults >= cnt:
             break
 
         if img.get_attribute("class").startswith("rg_i"):
@@ -111,10 +118,9 @@ def ScrapeImages(Query:str, driver=None):
             for bigImg in bigImgs:
                 if bigImg.get_attribute("class").startswith("r48jcc"):#bigImg.size["width"] > 256:
                     try:
-                        savePath = os.path.dirname(__file__)
                         # Enter the location of folder in which
                         # the images will be saved
-                        bigImg.screenshot(os.path.join(savePath, query + ' (' + str(i) + ').png'))
+                        bigImg.screenshot(os.path.join(thisPath, query + ' (' + str(i) + ').png'))
                         # Each new screenshot will automatically
                         # have its name updated
 
