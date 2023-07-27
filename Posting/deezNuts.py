@@ -14,7 +14,7 @@ class ChrisNolan:
     def isPicture(self, string):        
         if type(string) != tuple:
             extension = os.path.splitext(string)[-1]
-            if extension == ".png" or extension == ".jpg" or extension == ".jpeg" or extension == ".bmp":
+            if extension == ".png" or extension == ".jpg" or extension == ".jpeg" or extension == ".webp":
                 return True
             return False 
     def isVideo(self, string):
@@ -47,9 +47,13 @@ class ChrisNolan:
         for i in range(len(images)):
             clip = None
             actualLen = individualLen
+            
             if self.isPicture(images[i]):
                 theImage = images[i]
-                clip = ImageClip(theImage).set_start(t).set_duration(individualLen).set_pos(("center","center")).resize(width=self.vidSize[0])
+                try:
+                    clip = ImageClip(theImage).set_start(t).set_duration(individualLen).set_pos(("center","center")).resize(width=self.vidSize[0])
+                except:
+                    return False
             elif self.isVideo(images[i]):
                 clip = VideoFileClip(images[i][0]).set_start(t).set_duration(images[i][1]).set_pos(("center", "center")).resize(width=self.vidSize[0])
                 actualLen = images[i][1]
@@ -71,6 +75,8 @@ class ChrisNolan:
         #name += "_withAudio"
         audvidPath = name + "."+ yeet[-1]
         videoclip.write_videofile(audvidPath, fps=self.fpsRussia)
+
+        return True
 
 
     def testDaShit(self):

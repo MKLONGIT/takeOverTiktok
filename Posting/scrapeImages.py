@@ -2,7 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 import os
-
+import random
+import re
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
@@ -10,8 +11,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 
-
-
+import urllib
+import requests
 def chrome_defaults(*args, headless: bool = False, **kwargs) -> ChromeOptions:
     """
     Creates Chrome with Options
@@ -58,48 +59,11 @@ def ScrapeImages(Query:str, cnt = 5, driver=None, whereToSaveRelative="images"):
     driver.get(f'https://www.google.com/search?q={query}&tbm=isch&source=hp&biw=1058&bih=946&ei=HJfBZJKAA47SkgWj1bmQDA&iflsig=AD69kcEAAAAAZMGlLHs9U6-kY3K5T5qQ8H9LmRwpj_rK&ved=0ahUKEwiS_v6fr62AAxUOqaQKHaNqDsIQ4dUDCAc&uact=5&oq=balls&gs_lp=EgNpbWciBWJhbGxzMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABEicsgNQnq0DWOKwA3AIeACQAQCYAS6gAdUBqgEBNbgBA8gBAPgBAYoCC2d3cy13aXotaW1nqAIA&sclient=img')
 
 
-    # Function for scrolling to the bottom of Google
-    # Images results
-    def scroll_to_bottom():
-    
-        last_height = driver.execute_script('\
-        return document.body.scrollHeight')
-    
-        while True:
-            driver.execute_script('\
-            window.scrollTo(0,document.body.scrollHeight)')
-    
-            # waiting for the results to load
-            # Increase the sleep time if your internet is slow
-            time.sleep(3)
-    
-            new_height = driver.execute_script('\
-            return document.body.scrollHeight')
-    
-            # click on "Show more results" (if exists)
-            try:
-                driver.find_element_by_css_selector(".YstHxe input").click()
-    
-                # waiting for the results to load
-                # Increase the sleep time if your internet is slow
-                time.sleep(3)
-    
-            except:
-                pass
-    
-            # checking if we have reached the bottom of the page
-            if new_height == last_height:
-                break
-    
-            last_height = new_height
-    
-    
-    # Calling the function
     
     # NOTE: If you only want to capture a few images,
     # there is no need to use the scroll_to_bottom() function.
     #scroll_to_bottom()
-    time.sleep(2)
+    time.sleep(random.randint(3,6))
     imgs = driver.find_elements(By.CSS_SELECTOR,"img")
     # Loop to capture and save each image
     
@@ -111,21 +75,49 @@ def ScrapeImages(Query:str, cnt = 5, driver=None, whereToSaveRelative="images"):
 
         if img.get_attribute("class").startswith("rg_i"):
 
-            nResults+=1
             img.click()
-            time.sleep(1.5)
+            time.sleep(random.randint(3,6))
             bigImgs = driver.find_elements(By.CSS_SELECTOR, "img")
             for bigImg in bigImgs:
-                if bigImg.get_attribute("class").startswith("r48jcc"):#bigImg.size["width"] > 256:
+                if bigImg.get_attribute("class").startswith("r48jcc pT0Scc iPVvYb"):#bigImg.size["width"] > 256:
                     try:
+                        style = bigImg.get_attribute("style")
+                        minWidth = 768
+                        
+                        widthStyle = re.search(r"\bwidth: \b\d+", style).group(0)
+                        widthStyle = re.search(r"\d+", widthStyle).group(0)
+                        if int(widthStyle) > minWidth:
+                            pathToSource = bigImg.get_attribute('src')
+                            filename = thisPath + "\\"
+
+                            if pathToSource.endswith("png"):
+                                filename += f"{i} {query}.png"
+                            if pathToSource.endswith("jpg"):
+                                filename += f"{i} {query}.jpg"
+                            if pathToSource.endswith("jpeg"):
+                                filename += f"{i} {query}.jpg"
+                            if pathToSource.endswith("webp"):
+                                filename += f"{i} {query}.webp"
+
+                            r = requests.get(pathToSource)
+                            with open(filename, "wb+") as f:
+                                f.write(r.content)
+                            
+                            nResults+=1
+                            r.close()
+                            f.close()
+
+                        
+                        
                         # Enter the location of folder in which
                         # the images will be saved
-                        bigImg.screenshot(os.path.join(thisPath, query + ' (' + str(i) + ').png'))
+                        #bigImg.screenshot(os.path.join(thisPath, query + ' (' + str(i) + ').png'))
                         # Each new screenshot will automatically
                         # have its name updated
 
                         # Just to avoid unwanted errors
-                        time.sleep(0.5)
+                        time.sleep(random.randint(1,2))
+
 
                     except:
                         
